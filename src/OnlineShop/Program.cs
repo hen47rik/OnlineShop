@@ -11,7 +11,7 @@ builder.Services.Configure<DatabaseConfiguration>(builder.Configuration.GetSecti
 builder.Services.AddSingleton<IDbConnectionFactory>(a => 
     new MariaDbConnectionFactory(
         a.GetRequiredService<IOptions<DatabaseConfiguration>>()
-        .Value.MariaDbConnectionString));
+        .Value.MySqlConnectionString));
 builder.Services.AddSingleton<DatabaseInitializer>();
 
 var app = builder.Build();

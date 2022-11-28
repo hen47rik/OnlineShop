@@ -2,5 +2,5 @@
 
 public class DatabaseConfiguration
 {
-    public string MariaDbConnectionString { get; set; }
+    public required string MySqlConnectionString { get; set; }
 }

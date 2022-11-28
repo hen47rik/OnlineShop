@@ -14,7 +14,8 @@ public class DatabaseInitializer
     public async Task InitializeAsync()
     {
         await using var connection = await _connectionFactory.CreateConnectionAsync();
-        var sql = await File.ReadAllTextAsync("./online_shop.sql");
-        await connection.ExecuteAsync(sql);
+        // var sql = await File.ReadAllTextAsync("./online_shop.sql");
+        // await connection.ExecuteAsync(sql);
+        //ToDo execute migrations
     }
 }
