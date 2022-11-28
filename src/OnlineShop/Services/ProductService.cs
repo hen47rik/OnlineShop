@@ -16,14 +16,13 @@ public class ProductService
     public async Task<Product?> GetProductByIdAsync(int id)
     {
         await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        return await connection.QueryFirstOrDefaultAsync<Product>("select * from product p where p.id = ;")
+        return await connection.QueryFirstOrDefaultAsync<Product>("select * from product p where p.id = @id;", id);
     }
     
     public async Task<List<Product>> GetAllProductsAsync()
     {
         await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        await connection.QueryAsync<Product>("select * from online_shop.product;");
-        await connection.QueryAsync<Product>("SELECT *\nFROM ;")
+        await connection.QueryAsync<Product>("select * from product;");
         
         throw new NotImplementedException();
     }
@@ -31,10 +30,12 @@ public class ProductService
     public async Task<bool> CreateProduct(Product product)
     {
         await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        
-        await connection.ExecuteScalarAsync<Product>("")
+
+        await connection.ExecuteScalarAsync<Product>("");
         
         var db = MySqlDatabase.Init(connection, 2);
         await db.Products.InsertAsync(product);
+
+        return true;
     }
 }

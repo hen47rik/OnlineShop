@@ -13,7 +13,7 @@ public class DatabaseInitializer
 
     public async Task InitializeAsync()
     {
-        using var connection = await _connectionFactory.CreateConnectionAsync();
+        await using var connection = await _connectionFactory.CreateConnectionAsync();
         var sql = await File.ReadAllTextAsync("./online_shop.sql");
         await connection.ExecuteAsync(sql);
     }
