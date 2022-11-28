@@ -1,7 +1,18 @@
+using Microsoft.Extensions.Options;
+using OnlineShop.Configuration;
+using OnlineShop.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.Configure<DatabaseConfiguration>(builder.Configuration.GetSection("Database"));
+
+builder.Services.AddSingleton<IDbConnectionFactory>(a => 
+    new MariaDbConnectionFactory(
+        a.GetRequiredService<IOptions<DatabaseConfiguration>>()
+        .Value.MariaDbConnectionString));
+builder.Services.AddSingleton<DatabaseInitializer>();
 
 var app = builder.Build();
 
@@ -21,5 +32,8 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
+await databaseInitializer.InitializeAsync();
 
 app.Run();
