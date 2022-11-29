@@ -1,14 +1,19 @@
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using OnlineShop.Configuration;
 using OnlineShop.Data;
+using OnlineShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorRuntimeCompilation(options => options.FileProviders.Add(
+        new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory)));
 
 builder.Services.Configure<DatabaseConfiguration>(builder.Configuration.GetSection("Database"));
 
+builder.Services.AddScoped<ProductService>();
 builder.Services.AddSingleton<IDbConnectionFactory>(a => 
     new MariaDbConnectionFactory(
         a.GetRequiredService<IOptions<DatabaseConfiguration>>()
