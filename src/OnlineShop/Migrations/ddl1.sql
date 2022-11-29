@@ -1,11 +1,11 @@
-CREATE TABLE category
+CREATE TABLE IF NOT EXISTS category
 (
     id   int AUTO_INCREMENT
         PRIMARY KEY,
     name varchar(40) NOT NULL
 );
 
-CREATE TABLE `order`
+CREATE TABLE IF NOT EXISTS  `order`
 (
     id    int AUTO_INCREMENT
         PRIMARY KEY,
@@ -13,7 +13,7 @@ CREATE TABLE `order`
     date  datetime DEFAULT CURRENT_TIMESTAMP() NOT NULL
 );
 
-CREATE TABLE product
+CREATE TABLE IF NOT EXISTS  product
 (
     id          int AUTO_INCREMENT
         PRIMARY KEY,
@@ -24,7 +24,7 @@ CREATE TABLE product
     price       int           NOT NULL
 );
 
-CREATE TABLE order_product
+CREATE TABLE IF NOT EXISTS  order_product
 (
     `order`  int           NOT NULL,
     product  int           NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE order_product
         FOREIGN KEY (product) REFERENCES product (id)
 );
 
-CREATE TABLE product_category
+CREATE TABLE IF NOT EXISTS  product_category
 (
     product  int NOT NULL,
     category int NOT NULL,

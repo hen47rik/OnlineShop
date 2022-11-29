@@ -1,4 +1,6 @@
-﻿namespace OnlineShop.Data;
+﻿using Dapper;
+
+namespace OnlineShop.Data;
 
 public class DatabaseInitializer
 {
@@ -12,8 +14,10 @@ public class DatabaseInitializer
     public async Task InitializeAsync()
     {
         await using var connection = await _connectionFactory.CreateConnectionAsync();
-        // var sql = await File.ReadAllTextAsync("./online_shop.sql");
-        // await connection.ExecuteAsync(sql);
-        //ToDo execute migrations
+        foreach (var file in Directory.GetFiles("./Migrations"))
+        {
+            var sql = await File.ReadAllTextAsync(file);
+            await connection.ExecuteAsync(sql);
+        }
     }
 }

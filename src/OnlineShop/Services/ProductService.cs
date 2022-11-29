@@ -33,9 +33,6 @@ public class ProductService
 
         await connection.ExecuteScalarAsync<Product>("");
         
-        var db = MySqlDatabase.Init(connection, 2);
-        await db.Products.InsertAsync(product);
-
         return true;
     }
 }
