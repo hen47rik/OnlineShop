@@ -1,6 +1,4 @@
-﻿using Dapper;
-
-namespace OnlineShop.Data;
+﻿namespace OnlineShop.Data;
 
 public class DatabaseInitializer
 {
