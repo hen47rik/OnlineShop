@@ -12,8 +12,7 @@ public class AdminController : Controller
     {
         _productService = productService;
     }
-    
-    // GET
+
     public async Task<IActionResult> Index()
     {
         ViewData["products"] = await _productService.GetAllProductsAsync();
@@ -31,12 +30,12 @@ public class AdminController : Controller
             Price = price
         });
 
-        return await Index();
+        return Redirect("/Admin");
     }
 
     public async Task<IActionResult> DeleteProduct(int id)
     {
         await _productService.DeleteProduct(id);
-        return await Index();
+        return Redirect("/Admin");
     }
 }

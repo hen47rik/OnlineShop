@@ -14,21 +14,22 @@
 </form>
 
 <form class="d-flex p-2 flex-wrap">
-       @foreach (var product in (List<Product>)ViewData["products"]!)
-       {
-           <div class="card" style="width: 18rem;">
-               <button asp-action="DeleteProduct" type="submit" class="btn btn-danger" name="id" value="@product.Id">X</button>
-               <img class="card-img-top" src="@product.Images">
-               <div class="card-body">
-                   <h5 class="card-title">@product.Name</h5>
-                   <p class="card-text">@product.Description</p>
-               </div>
-               <ul class="list-group list-group-flush">
-                   <li class="list-group-item">@product.Amount</li>
-                   <li class="list-group-item">@product.Price</li>
-                   <li class="list-group-item">Vestibulum at eros</li>
-               </ul>
-           </div>
-       }
+    @foreach (var product in (List<Product>)ViewData["products"]!)
+    {
+        <div class="card" style="width: 18rem;">
+            <button asp-action="DeleteProduct" type="submit" class="btn btn-danger" name="id" value="@product.Id">X</button>
+            <img class="card-img-top" src="@product.Images" alt="">
+            <div class="card-body">
+                <h5 class="card-title">@product.Name</h5>
+                <p class="card-text">@product.Description</p>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">@product.Amount</li>
+                <li class="list-group-item">@product.Price</li>
+                <li class="list-group-item">Vestibulum at eros</li>
+            </ul>
+        </div>
+    }
 </form>
 
+<iframe name="dummyframe" id="dummyframe" style="display: none;"></iframe>
