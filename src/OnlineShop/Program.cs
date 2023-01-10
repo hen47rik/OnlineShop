@@ -9,7 +9,6 @@ using static System.Text.Encoding;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation(options => options.FileProviders.Add(
         new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory)));
@@ -23,16 +22,12 @@ builder.Services.AddScoped<ProductService>();
 
 builder.Services.AddScoped<IDbConnectionFactory>(provider =>
 {
-    var dbConfig = provider.GetRequiredService<IOptionsSnapshot<DatabaseConfiguration>>().Value;
+    var dbConfig = provider.GetRequiredService<IOptions<DatabaseConfiguration>>().Value;
+    var fileStorage = provider.GetRequiredService<FileStorageService>();
+    
+    var dbToUse = dbConfig.Databases.First(x => x.Name == fileStorage.FileStorage.ActiveDb);
 
-    var dbToUse = dbConfig.Databases.First(x => x.Name == dbConfig.ActiveDb);
-
-    return dbToUse.DbDialect switch
-    {
-        DbDialect.Sqlite => new SqliteConnectionFactory(dbToUse.ConnectionString),
-        DbDialect.MariaDb => new MariaDbConnectionFactory(dbToUse.ConnectionString),
-        _ => throw new ArgumentOutOfRangeException($"""There is no implmentation of the "{dbToUse.DbDialect}" SQL dialect configured""")
-    };
+    return dbToUse.CreateDbConnectionFactory();
 });
 
 builder.Services.AddSingleton<DatabaseInitializer>();

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS  `order`
     id    int AUTO_INCREMENT
         PRIMARY KEY,
     email varchar(40)                          NOT NULL,
-    date  datetime DEFAULT CURRENT_TIMESTAMP() NOT NULL
+    date  datetime DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS  product

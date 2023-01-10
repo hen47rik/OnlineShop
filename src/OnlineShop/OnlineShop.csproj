@@ -17,13 +17,16 @@
 
     <ItemGroup>
         <None Remove="Migrations\ddl1.sql" />
-        <EmbeddedResource Include="Migrations\ddl1.sql">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Dtos" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Migrations\ddl1.sql">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
     </ItemGroup>
 
 </Project>
