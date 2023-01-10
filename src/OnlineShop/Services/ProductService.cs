@@ -12,13 +12,14 @@ public class ProductService
     {
         _dbConnectionFactory = dbConnectionFactory;
     }
-    
+
     public async Task<Product?> GetProductByIdAsync(int id)
     {
         await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        return await connection.QueryFirstOrDefaultAsync<Product>("select * from product p where p.id = @id;", new {id});
+        return await connection.QueryFirstOrDefaultAsync<Product>("select * from product p where p.id = @id;",
+            new { id });
     }
-    
+
     public async Task<List<Product>> GetAllProductsAsync()
     {
         await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
@@ -32,9 +33,9 @@ public class ProductService
         await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
 
         var res = await connection.ExecuteAsync(@"INSERT INTO product (name, description, images, amount, price) 
-VALUES (@name, @description, @images, @amount, @price)", 
-            new { product.Name, product.Description, product.Images, product.Amount, product.Price});
-        
+VALUES (@name, @description, @images, @amount, @price)",
+            new { product.Name, product.Description, product.Images, product.Amount, product.Price });
+
         return res == 1;
     }
 

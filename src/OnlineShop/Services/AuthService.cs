@@ -25,8 +25,8 @@ public class AuthService
         {
             new(ClaimTypes.Email, email)
         };
-        
-        if(isAdmin)
+
+        if (isAdmin)
             claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
         var key = new SymmetricSecurityKey(UTF8.GetBytes(_configuration.Value.Secret));

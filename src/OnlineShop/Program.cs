@@ -20,10 +20,21 @@ builder.Services.Configure<AuthConfiguration>(builder.Configuration.GetSection("
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProductService>();
-builder.Services.AddSingleton<IDbConnectionFactory>(a => 
-    new MariaDbConnectionFactory(
-        a.GetRequiredService<IOptions<DatabaseConfiguration>>()
-            .Value.MySqlConnectionString));
+
+builder.Services.AddScoped<IDbConnectionFactory>(provider =>
+{
+    var dbConfig = provider.GetRequiredService<IOptionsSnapshot<DatabaseConfiguration>>().Value;
+
+    var dbToUse = dbConfig.Databases.First(x => x.Name == dbConfig.ActiveDb);
+
+    return dbToUse.DbDialect switch
+    {
+        DbDialect.Sqlite => new SqliteConnectionFactory(dbToUse.ConnectionString),
+        DbDialect.MariaDb => new MariaDbConnectionFactory(dbToUse.ConnectionString),
+        _ => throw new ArgumentOutOfRangeException($"""There is no implmentation of the "{dbToUse.DbDialect}" SQL dialect configured""")
+    };
+});
+
 builder.Services.AddSingleton<DatabaseInitializer>();
 
 builder.Services.AddHttpContextAccessor();

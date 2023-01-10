@@ -11,7 +11,7 @@ public class MariaDbConnectionFactory : IDbConnectionFactory
     {
         _connectionString = connectionString;
     }
-    
+
     public async Task<DbConnection> CreateConnectionAsync()
     {
         var connection = new MySqlConnection(_connectionString);
