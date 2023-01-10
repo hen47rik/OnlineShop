@@ -1,8 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using OnlineShop.Configuration;
 using OnlineShop.Data;
 using OnlineShop.Services;
+using static System.Text.Encoding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,13 +15,41 @@ builder.Services.AddControllersWithViews()
         new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory)));
 
 builder.Services.Configure<DatabaseConfiguration>(builder.Configuration.GetSection("Database"));
+builder.Services.Configure<AuthConfiguration>(builder.Configuration.GetSection("Auth"));
 
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddSingleton<IDbConnectionFactory>(a => 
     new MariaDbConnectionFactory(
         a.GetRequiredService<IOptions<DatabaseConfiguration>>()
             .Value.MySqlConnectionString));
 builder.Services.AddSingleton<DatabaseInitializer>();
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey =
+                new SymmetricSecurityKey(UTF8.GetBytes(builder.Configuration.GetRequiredSection("Auth:Secret")
+                    .Value!)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["dasToken"];
+                return Task.CompletedTask;
+            }
+        };
+    });
+builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
@@ -32,6 +63,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseStaticFiles();
 
 app.UseRouting();

@@ -24,6 +24,17 @@ CREATE TABLE IF NOT EXISTS  product
     price       int           NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS  user
+(
+    id          int AUTO_INCREMENT
+        PRIMARY KEY,
+    passwordHash blob NOT NULL,
+    passwordSalt blob NOT NULL,
+    email varchar(100)  NOT NULL,
+    isAdmin bool NOT NULL 
+);
+
+
 CREATE TABLE IF NOT EXISTS  order_product
 (
     `order`  int           NOT NULL,
@@ -45,6 +56,17 @@ CREATE TABLE IF NOT EXISTS  product_category
         FOREIGN KEY (category) REFERENCES category (id),
     CONSTRAINT product_category_product_null_fk
         FOREIGN KEY (product) REFERENCES product (id)
+);
+
+CREATE TABLE IF NOT EXISTS  user_order
+(
+    user  int NOT NULL,
+    `order` int NOT NULL,
+    PRIMARY KEY (user, `order`),
+    CONSTRAINT user_order_user_null_fk
+        FOREIGN KEY (user) REFERENCES user (id),
+    CONSTRAINT user_order_order_null_fk
+        FOREIGN KEY (`order`) REFERENCES `order` (id)
 );
 
 

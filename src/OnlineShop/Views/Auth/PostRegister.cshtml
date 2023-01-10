@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Register";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Create an account</p>
+
+<form asp-action="PostRegister">
+    <input type="text" name="Email">
+    <input type="text" name="Password"/>
+    <input type="submit"/>
+</form>

@@ -3,6 +3,21 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to the Online Shop</h1>
+    <p>Products:</p>
+    @foreach (var product in (List<Product>)ViewData["products"]!)
+    {
+        <div class="card" style="width: 18rem;">
+            <img class="card-img-top" src="@product.Images" alt="">
+            <div class="card-body">
+                <h5 class="card-title">@product.Name</h5>
+                <p class="card-text">@product.Description</p>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">@product.Amount</li>
+                <li class="list-group-item">@product.Price</li>
+                <li class="list-group-item">Vestibulum at eros</li>
+            </ul>
+        </div>
+    }
 </div>
