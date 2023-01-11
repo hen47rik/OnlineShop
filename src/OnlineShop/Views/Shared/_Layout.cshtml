@@ -1,5 +1,7 @@
 ﻿@using OnlineShop.Services
+@using OnlineShop.Data
 @inject UserService UserService
+@inject DatabaseService DatabaseService
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +39,10 @@
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">@UserService.GetEmail()</a>
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Angemeldeter Benutzer: @UserService.GetEmail()</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Aktuelle Datenbank: @DatabaseService.GetActiveDb().Name</a>
                     </li>
                 </ul>
             </div>

@@ -1,22 +1,20 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using OnlineShop.Configuration;
 using static System.Text.Encoding;
 
 namespace OnlineShop.Services;
 
 public class AuthService
 {
-    private readonly IOptions<AuthConfiguration> _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly DatabaseService _databaseService;
 
-    public AuthService(IOptions<AuthConfiguration> configuration, IHttpContextAccessor httpContextAccessor)
+    public AuthService(IHttpContextAccessor httpContextAccessor, DatabaseService databaseService)
     {
-        _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
+        _databaseService = databaseService;
     }
 
     public string CreateToken(string email, bool isAdmin)
@@ -29,7 +27,7 @@ public class AuthService
         if (isAdmin)
             claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
-        var key = new SymmetricSecurityKey(UTF8.GetBytes(_configuration.Value.Secret));
+        var key = new SymmetricSecurityKey(UTF8.GetBytes(_databaseService.GetActiveDb().Secret));
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 

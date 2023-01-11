@@ -14,7 +14,6 @@ builder.Services.AddControllersWithViews()
         new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory)));
 
 builder.Services.Configure<DatabaseConfiguration>(builder.Configuration.GetSection("Database"));
-builder.Services.Configure<AuthConfiguration>(builder.Configuration.GetSection("Auth"));
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
@@ -22,15 +21,22 @@ builder.Services.AddScoped<ProductService>();
 
 builder.Services.AddScoped<IDbConnectionFactory>(provider =>
 {
-    var dbConfig = provider.GetRequiredService<IOptions<DatabaseConfiguration>>().Value;
-    var fileStorage = provider.GetRequiredService<FileStorageService>();
-    
-    var dbToUse = dbConfig.Databases.First(x => x.Name == fileStorage.FileStorage.ActiveDb);
+    var fileStorage = provider.GetRequiredService<DatabaseService>();
+
+    var dbToUse = fileStorage.GetActiveDb();
 
     return dbToUse.CreateDbConnectionFactory();
 });
 
 builder.Services.AddSingleton<DatabaseInitializer>();
+
+DatabaseService? databaseService = null;
+builder.Services.AddSingleton<DatabaseService>(provider =>
+{
+    var dbConfiguration = provider.GetRequiredService<IOptions<DatabaseConfiguration>>();
+    databaseService = new DatabaseService(dbConfiguration);
+    return databaseService;
+});
 
 builder.Services.AddHttpContextAccessor();
 
@@ -40,11 +46,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey =
-                new SymmetricSecurityKey(UTF8.GetBytes(builder.Configuration.GetRequiredSection("Auth:Secret")
-                    .Value!)),
             ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateAudience = false,
+            IssuerSigningKeyResolver = (_, _, _, _) =>
+            {
+                return new[]
+                {
+                    new SymmetricSecurityKey(UTF8.GetBytes(databaseService?.GetActiveDb().Secret!))
+                };
+            }
         };
         options.Events = new JwtBearerEvents
         {

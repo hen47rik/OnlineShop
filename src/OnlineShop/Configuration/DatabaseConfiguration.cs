@@ -14,6 +14,8 @@ public class DbConfig
     public required string ConnectionString { get; set; }
     public required DbDialect DbDialect { get; set; }
 
+    public required string Secret { get; set; }
+
     public IDbConnectionFactory CreateDbConnectionFactory()
     {
         return DbDialect switch

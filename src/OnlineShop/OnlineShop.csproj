@@ -20,10 +20,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Dtos" />
-    </ItemGroup>
-
-    <ItemGroup>
       <EmbeddedResource Include="Migrations\ddl1.sql">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </EmbeddedResource>

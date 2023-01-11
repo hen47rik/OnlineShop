@@ -13,7 +13,7 @@ public class DatabaseInitializer
     {
         _databaseConfiguration = databaseConfiguration;
     }
-    
+
     public async Task InitializeAsync()
     {
         var migrations = await GetMigrations();
