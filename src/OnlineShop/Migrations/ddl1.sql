@@ -5,15 +5,16 @@ CREATE TABLE IF NOT EXISTS category
     name varchar(40) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS  `order`
+CREATE TABLE IF NOT EXISTS `order`
 (
-    id    int AUTO_INCREMENT
+    id          int AUTO_INCREMENT
         PRIMARY KEY,
-    email varchar(40)                          NOT NULL,
-    date  datetime DEFAULT CURRENT_TIMESTAMP NOT NULL
+    date        datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    user        int                                NOT NULL,
+    isCompleted bool     DEFAULT FALSE             NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS  product
+CREATE TABLE IF NOT EXISTS product
 (
     id          int AUTO_INCREMENT
         PRIMARY KEY,
@@ -24,22 +25,20 @@ CREATE TABLE IF NOT EXISTS  product
     price       int           NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS  user
+CREATE TABLE IF NOT EXISTS user
 (
-    id          int AUTO_INCREMENT
+    id           int AUTO_INCREMENT
         PRIMARY KEY,
-    passwordHash blob NOT NULL,
-    passwordSalt blob NOT NULL,
-    email varchar(100)  NOT NULL,
-    isAdmin bool NOT NULL 
+    passwordHash blob         NOT NULL,
+    passwordSalt blob         NOT NULL,
+    email        varchar(100) NOT NULL,
+    isAdmin      bool         NOT NULL
 );
 
-
-CREATE TABLE IF NOT EXISTS  order_product
+CREATE TABLE IF NOT EXISTS order_product
 (
     `order`  int           NOT NULL,
     product  int           NOT NULL,
-    quantity int DEFAULT 0 NOT NULL,
     PRIMARY KEY (`order`, product),
     CONSTRAINT order_product_order_null_fk
         FOREIGN KEY (`order`) REFERENCES `order` (id),
@@ -47,7 +46,7 @@ CREATE TABLE IF NOT EXISTS  order_product
         FOREIGN KEY (product) REFERENCES product (id)
 );
 
-CREATE TABLE IF NOT EXISTS  product_category
+CREATE TABLE IF NOT EXISTS product_category
 (
     product  int NOT NULL,
     category int NOT NULL,
@@ -56,17 +55,6 @@ CREATE TABLE IF NOT EXISTS  product_category
         FOREIGN KEY (category) REFERENCES category (id),
     CONSTRAINT product_category_product_null_fk
         FOREIGN KEY (product) REFERENCES product (id)
-);
-
-CREATE TABLE IF NOT EXISTS  user_order
-(
-    user  int NOT NULL,
-    `order` int NOT NULL,
-    PRIMARY KEY (user, `order`),
-    CONSTRAINT user_order_user_null_fk
-        FOREIGN KEY (user) REFERENCES user (id),
-    CONSTRAINT user_order_order_null_fk
-        FOREIGN KEY (`order`) REFERENCES `order` (id)
 );
 
 

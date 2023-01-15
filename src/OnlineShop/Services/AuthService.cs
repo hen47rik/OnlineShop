@@ -68,7 +68,8 @@ public class AuthService
             Secure = true,
             Domain = null,
             HttpOnly = true,
-            IsEssential = true
+            IsEssential = true,
+            Expires = DateTime.UtcNow.AddDays(100)
         });
         httpResponse.Headers.AccessControlAllowCredentials = "true";
     }

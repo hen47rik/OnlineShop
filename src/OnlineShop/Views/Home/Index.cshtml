@@ -2,12 +2,13 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
+<form class="text-center">
     <h1 class="display-4">Welcome to the Online Shop</h1>
     <p>Products:</p>
     @foreach (var product in (List<Product>)ViewData["products"]!)
     {
         <div class="card" style="width: 18rem;">
+            <button asp-action="AddToOrder" type="submit" class="btn btn-success" name="id" value="@product.Id">Add to cart</button>
             <img class="card-img-top" src="@product.Images" alt="">
             <div class="card-body">
                 <h5 class="card-title">@product.Name</h5>
@@ -20,4 +21,4 @@
             </ul>
         </div>
     }
-</div>
+</form>

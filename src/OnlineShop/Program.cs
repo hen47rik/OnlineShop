@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using OnlineShop.Configuration;
 using OnlineShop.Data;
 using OnlineShop.Services;
-using static System.Text.Encoding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +16,7 @@ builder.Services.Configure<DatabaseConfiguration>(builder.Configuration.GetSecti
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<OrderService>();
 
 builder.Services.AddScoped<IDbConnectionFactory>(provider =>
 {
@@ -29,42 +28,14 @@ builder.Services.AddScoped<IDbConnectionFactory>(provider =>
 });
 
 builder.Services.AddSingleton<DatabaseInitializer>();
-
-DatabaseService? databaseService = null;
-builder.Services.AddSingleton<DatabaseService>(provider =>
-{
-    var dbConfiguration = provider.GetRequiredService<IOptions<DatabaseConfiguration>>();
-    databaseService = new DatabaseService(dbConfiguration);
-    return databaseService;
-});
+builder.Services.AddSingleton<DatabaseService>();
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            IssuerSigningKeyResolver = (_, _, _, _) =>
-            {
-                return new[]
-                {
-                    new SymmetricSecurityKey(UTF8.GetBytes(databaseService?.GetActiveDb().Secret!))
-                };
-            }
-        };
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                context.Token = context.Request.Cookies["dasToken"];
-                return Task.CompletedTask;
-            }
-        };
-    });
+    .AddJwtBearer();
+
+builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 builder.Services.AddAuthorization();
 
 

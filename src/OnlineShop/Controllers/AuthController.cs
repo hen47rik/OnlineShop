@@ -6,10 +6,12 @@ namespace OnlineShop.Controllers;
 public class AuthController : Controller
 {
     private readonly UserService _userService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuthController(UserService userService)
+    public AuthController(UserService userService, IHttpContextAccessor httpContextAccessor)
     {
         _userService = userService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public IActionResult Index()
@@ -36,6 +38,15 @@ public class AuthController : Controller
     public async Task<IActionResult> PostRegister(string email, string password)
     {
         await _userService.RegisterUser(email, password);
+        return Redirect("/");
+    }
+    
+    public IActionResult Logout()
+    {
+        _httpContextAccessor.HttpContext?.Response.Cookies.Append("dasToken", "",  new CookieOptions
+        {
+            Expires = DateTime.UtcNow.AddDays(-1)
+        });
         return Redirect("/");
     }
 }
