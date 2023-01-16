@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using OnlineShop.Configuration;
 using OnlineShop.Data;
+using OnlineShop.Models;
 using OnlineShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +31,8 @@ builder.Services.AddScoped<IDbConnectionFactory>(provider =>
 
 builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddSingleton<DatabaseService>();
+
+builder.Services.AddDbContextFactory<DatabaseContext, DatabaseContextFactory>();
 
 builder.Services.AddHttpContextAccessor();
 
