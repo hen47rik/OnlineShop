@@ -8,4 +8,5 @@ public class Product
     public string Images { get; set; } = null!;
     public int Amount { get; set; }
     public int Price { get; set; }
+    public List<Order> Orders { get; set; }
 }

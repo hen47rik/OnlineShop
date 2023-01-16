@@ -28,6 +28,33 @@ public class ProductService
         return res.ToList();
     }
 
+    public async Task<List<Product>> GetAllProductsIncludingUserAsync()
+    {
+        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
+        
+        const string sql = """
+                select * from product 
+                        INNER JOIN order_product op ON product.id = op.product 
+                        INNER join `order` o ON op.`order` = o.id 
+                        INNER join user u on o.user = u.id;
+                """;
+        
+        var products = await connection.QueryAsync<Product, Order, User, Product>(sql, (product, order, user) =>
+        {
+            product.Orders.Add(order);
+            return product;
+        }, splitOn: "order, o.id");
+
+        var result = products.GroupBy(p => p.Id).Select(g =>
+        {
+            var groupedProduct = g.First();
+            groupedProduct.Orders = g.Select(p => p.Orders.Single()).ToList();
+            return groupedProduct;
+        }).ToList();
+        
+        return res.ToList();
+    }
+
     public async Task<bool> CreateProduct(Product product)
     {
         await using var connection = await _dbConnectionFactory.CreateConnectionAsync();

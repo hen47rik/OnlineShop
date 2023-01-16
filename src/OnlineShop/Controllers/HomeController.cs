@@ -9,16 +9,20 @@ public class HomeController : Controller
 {
     private readonly ProductService _productService;
     private readonly OrderService _orderService;
+    private readonly UserService _userService;
 
-    public HomeController(ProductService productService, OrderService orderService)
+    public HomeController(ProductService productService, OrderService orderService, UserService userService)
     {
         _productService = productService;
         _orderService = orderService;
+        _userService = userService;
     }
 
     public async Task<IActionResult> Index()
     {
-        ViewData["products"] = await _productService.GetAllProductsAsync();
+        ViewData["products"] = await _productService.GetAllProductsIncludingUserAsync();
+        ViewData["user"] =  await _userService.GetUser();
+        
         return View();
     }
 
