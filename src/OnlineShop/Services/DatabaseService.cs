@@ -28,7 +28,8 @@ public class DatabaseService
 
     public DbConfig GetActiveDb()
     {
-        return _databaseConfigOptions.Value.Databases.First(x => x.Name == FileStorage.ActiveDb);
+        return _databaseConfigOptions.Value.Databases.FirstOrDefault(x => x.Name == FileStorage.ActiveDb)
+               ?? throw new Exception($"No db with the name {FileStorage.ActiveDb} configured");
     }
 
     public FileStorage FileStorage { get; private set; }

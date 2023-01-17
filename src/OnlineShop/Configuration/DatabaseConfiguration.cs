@@ -1,4 +1,5 @@
-﻿using OnlineShop.Data;
+﻿
+using OnlineShop.Data;
 
 namespace OnlineShop.Configuration;
 
@@ -12,23 +13,16 @@ public class DbConfig
 {
     public required string Name { get; set; }
     public required string ConnectionString { get; set; }
-    public required DbDialect DbDialect { get; set; }
 
     public required string Secret { get; set; }
 
-    public IDbConnectionFactory CreateDbConnectionFactory()
+    public IDbContext CreateDbConnectionFactory(IServiceProvider serviceProvider)
     {
-        return DbDialect switch
+        return Name switch
         {
-            DbDialect.Sqlite => new SqliteConnectionFactory(ConnectionString),
-            DbDialect.MariaDb => new MariaDbConnectionFactory(ConnectionString),
-            _ => throw new ArgumentOutOfRangeException($"""There is no implmentation of the "{DbDialect}" SQL dialect configured""")
+            "MariaDb" => serviceProvider.GetRequiredService<MySqlContext>(),
+            "Sqlite" => serviceProvider.GetRequiredService<SqliteContext>(),
+            _ => throw new Exception($"There is no db with the name {Name} configured")
         };
     }
-}
-
-public enum DbDialect
-{
-    Sqlite,
-    MariaDb
 }

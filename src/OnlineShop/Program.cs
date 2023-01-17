@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using OnlineShop.Configuration;
 using OnlineShop.Data;
-using OnlineShop.Models;
+using OnlineShop.Exceptions;
 using OnlineShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,19 +21,34 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
 
-builder.Services.AddScoped<IDbConnectionFactory>(provider =>
+builder.Services.AddScoped<IDbContext>(provider =>
 {
     var fileStorage = provider.GetRequiredService<DatabaseService>();
 
     var dbToUse = fileStorage.GetActiveDb();
 
-    return dbToUse.CreateDbConnectionFactory();
+    return dbToUse.CreateDbConnectionFactory(provider);
 });
 
-builder.Services.AddSingleton<DatabaseInitializer>();
 builder.Services.AddSingleton<DatabaseService>();
 
-builder.Services.AddDbContextFactory<DatabaseContext, DatabaseContextFactory>();
+builder.Services.AddDbContext<MySqlContext>((provider, options) =>
+{
+    var dbService = provider.GetRequiredService<IOptions<DatabaseConfiguration>>();
+    var db = dbService.Value.Databases.FirstOrDefault(x => x.Name == "MariaDb");
+    if (db is null)
+        throw new Exception("No mariadb configured");
+    options.UseMySql(db.ConnectionString, new MariaDbServerVersion("10.10.2"));
+});
+
+builder.Services.AddDbContext<SqliteContext>((provider, options) =>
+{
+    var dbService = provider.GetRequiredService<IOptions<DatabaseConfiguration>>();
+    var db = dbService.Value.Databases.FirstOrDefault(x => x.Name == "Sqlite");
+    if (db is null)
+        throw new Exception("No sqlite configured");
+    options.UseSqlite(db.ConnectionString);
+});
 
 builder.Services.AddHttpContextAccessor();
 
@@ -42,8 +58,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
 builder.Services.AddAuthorization();
 
-
 var app = builder.Build();
+
+app.UseExceptionHandler(appError =>
+{
+   appError.Run(async (context ) =>
+   {
+       var exceptionHandlerPathFeature =
+           context.Features.Get<IExceptionHandlerPathFeature>();
+
+       if (exceptionHandlerPathFeature?.Error is not BadRequestException exception)
+           return;
+
+       context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+       await context.Response.WriteAsJsonAsync(exception.Message);
+   }); 
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -67,8 +98,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-var databaseInitializer = app.Services.GetRequiredService<DatabaseInitializer>();
-await databaseInitializer.InitializeAsync();
 
 app.Run();

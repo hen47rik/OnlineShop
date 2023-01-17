@@ -1,11 +1,12 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 
-    string GetDisabledString(Product product)
+    bool IsDisabled(Product product)
     {
-        var user = (User)ViewData["user"]!;
-        var userAlreadyOrderdProduct = product.Orders.FirstOrDefault(x => x.User.Id == user.Id) is not null;
-        return userAlreadyOrderdProduct ? "disabled" : string.Empty;
+        if (ViewData["user"] is not User user)
+            return false;
+        var userAlreadyOrderdProduct = product.Orders.FirstOrDefault(x => x.User.Id == user.Id && x.IsCompleted == false) is not null;
+        return userAlreadyOrderdProduct;
     }
 }
 
@@ -15,7 +16,7 @@
     @foreach (var product in (List<Product>)ViewData["products"]!)
     {
         <div class="card" style="width: 18rem;">
-            <button asp-action="AddToOrder" type="submit" class="btn btn-success" name="id" @GetDisabledString(product) value="@product.Id">Add to cart</button>
+            <button asp-action="AddToOrder" type="submit" class="btn btn-success" name="id" disabled="@(IsDisabled(product))" value="@product.Id">Add to cart</button>
             <img class="card-img-top" src="@product.Images" alt="">
             <div class="card-body">
                 <h5 class="card-title">@product.Name</h5>
@@ -28,4 +29,9 @@
             </ul>
         </div>
     }
+    @if (ViewData["user"] is not null)
+    {
+        <button asp-action="Checkout" type="submit" class="btn btn-success" name="id">Checkout</button>
+    }
+                
 </form>

@@ -1,4 +1,4 @@
-﻿using Dapper;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineShop.Data;
 using OnlineShop.Models;
 
@@ -6,72 +6,40 @@ namespace OnlineShop.Services;
 
 public class ProductService
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IDbContext _dbContext;
 
-    public ProductService(IDbConnectionFactory dbConnectionFactory)
+    public ProductService(IDbContext dbContext)
     {
-        _dbConnectionFactory = dbConnectionFactory;
+        _dbContext = dbContext;
     }
 
     public async Task<Product?> GetProductByIdAsync(int id)
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        return await connection.QueryFirstOrDefaultAsync<Product>("select * from product p where p.id = @id;",
-            new { id });
+        return await _dbContext.Products.FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<List<Product>> GetAllProductsAsync()
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        var res = await connection.QueryAsync<Product>("select * from product;");
-
-        return res.ToList();
+        return await _dbContext.Products.ToListAsync();
     }
 
-    public async Task<List<Product>> GetAllProductsIncludingUserAsync()
+    public async Task<List<Product>> GetAllProductsIncludingOrderAsync()
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        
-        const string sql = """
-                select * from product 
-                        INNER JOIN order_product op ON product.id = op.product 
-                        INNER join `order` o ON op.`order` = o.id 
-                        INNER join user u on o.user = u.id;
-                """;
-        
-        var products = await connection.QueryAsync<Product, Order, User, Product>(sql, (product, order, user) =>
-        {
-            product.Orders.Add(order);
-            return product;
-        }, splitOn: "order, o.id");
-
-        var result = products.GroupBy(p => p.Id).Select(g =>
-        {
-            var groupedProduct = g.First();
-            groupedProduct.Orders = g.Select(p => p.Orders.Single()).ToList();
-            return groupedProduct;
-        }).ToList();
-        
-        return res.ToList();
+        return await _dbContext.Products.Include(x => x.Orders).ToListAsync();
     }
 
-    public async Task<bool> CreateProduct(Product product)
+    public async Task CreateProduct(Product product)
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-
-        var res = await connection.ExecuteAsync(@"INSERT INTO product (name, description, images, amount, price) 
-VALUES (@name, @description, @images, @amount, @price)",
-            new { product.Name, product.Description, product.Images, product.Amount, product.Price });
-
-        return res == 1;
+        _dbContext.Products.Add(product);
+        await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<bool> DeleteProduct(int id)
+    public async Task DeleteProduct(int id)
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-
-        var res = await connection.ExecuteAsync("delete from product where id = @id;", new { id });
-
-        return res == 1;
+        var productToRemove = await _dbContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+        if (productToRemove is null)
+            return;
+        _dbContext.Products.Remove(productToRemove);
+        await _dbContext.SaveChangesAsync();
     }
 }

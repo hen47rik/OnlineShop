@@ -1,5 +1,4 @@
-using System.Data;
-using Dapper;
+using Microsoft.EntityFrameworkCore;
 using OnlineShop.Data;
 using OnlineShop.Exceptions;
 using OnlineShop.Models;
@@ -8,12 +7,12 @@ namespace OnlineShop.Services;
 
 public class OrderService
 {
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IDbContext _dbContext;
     private readonly UserService _userService;
 
-    public OrderService(IDbConnectionFactory dbConnectionFactory, UserService userService)
+    public OrderService(IDbContext dbContext, UserService userService)
     {
-        _dbConnectionFactory = dbConnectionFactory;
+        _dbContext = dbContext;
         _userService = userService;
     }
 
@@ -23,33 +22,34 @@ public class OrderService
 
         if (user is null)
             throw new BadRequestException("User must be logged in to order a product");
+
+        var product = await _dbContext.Products.FirstOrDefaultAsync(x => x.Id == productId);
+
+        if (product is null)
+            throw new BadRequestException("Product does not exist");
         
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
+        var existingOrder = await _dbContext.Orders
+            .Where(x => x.User.Id == user.Id && x.IsCompleted == false)
+            .Include(x => x.Products)
+            .FirstOrDefaultAsync();
 
-        var orderId = await GetOrder(connection, user.Id);
-
-        if (orderId is null)
+        if (existingOrder is null)
         {
-            await connection.ExecuteAsync(@"INSERT INTO `order` (user) VALUES (@id)", new {user.Id});
-            orderId = await GetOrder(connection, user.Id);
+            existingOrder = new Order
+            {
+                User = user,
+                Products = new List<Product>()
+            };
+            _dbContext.Orders.Add(existingOrder);
+        }
+        else if(existingOrder.Products.FirstOrDefault(x => x.Id == productId) is not null)
+        {
+            throw new BadRequestException("User already ordered product");
         }
         
-        if (orderId is null)
-            throw new BadRequestException("Could not create Order");
+        existingOrder.Products.Add(product);
 
-        if (await connection.QueryFirstOrDefaultAsync<int>(
-                "select * from order_product WHERE product = @productId AND `order` = @orderId;", new{ orderId, productId }) != 0)
-        {
-            throw new BadRequestException("Item already ordered");
-        }
-        
-        await connection.ExecuteAsync(
-            "INSERT INTO order_product (`order`, product) VALUES (@orderId, @productId)", new { orderId, productId});
+        await _dbContext.SaveChangesAsync();
     }
 
-    private async Task<int?> GetOrder(IDbConnection dbConnection, int userId)
-    {
-        return await dbConnection.QueryFirstOrDefaultAsync<int?>(
-            "select id from `order` o where o.user = @id AND o.isCompleted = FALSE;", new { id = userId });
-    }
 }

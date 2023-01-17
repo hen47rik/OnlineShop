@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using Dapper;
+using Microsoft.EntityFrameworkCore;
 using OnlineShop.Data;
 using OnlineShop.Exceptions;
 using OnlineShop.Models;
@@ -10,37 +10,40 @@ public class UserService
 {
     private readonly AuthService _authService;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IDbConnectionFactory _dbConnectionFactory;
+    private readonly IDbContext _dbContext;
 
     public UserService(AuthService authService, IHttpContextAccessor httpContextAccessor,
-        IDbConnectionFactory dbConnectionFactory)
+        IDbContext dbContext)
     {
         _authService = authService;
         _httpContextAccessor = httpContextAccessor;
-        _dbConnectionFactory = dbConnectionFactory;
+        _dbContext = dbContext;
     }
 
     public async Task RegisterUser(string email, string password)
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-
-        var existingUser =
-            await connection.QueryFirstOrDefaultAsync<User>("select * from user u where u.email = @email;",
-                new { email });
+        var existingUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
 
         if (existingUser is not null)
             throw new BadRequestException("Email already taken");
 
-        var firstUser = await connection.QueryFirstOrDefaultAsync<User>("select * from user;");
+        var firstUser = await _dbContext.Users.FirstOrDefaultAsync();
 
         var isAdmin = firstUser is null;
 
         _authService.CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
 
-        await connection.ExecuteAsync(
-            "insert into user (email, passwordHash, passwordSalt, isAdmin) values (@email, @passwordHash, @passwordSalt, @isAdmin);",
-            new { email, passwordHash, passwordSalt, isAdmin });
+        _dbContext.Users.Add(new User
+        {
+            Email = email,
+            IsAdmin = isAdmin,
+            PasswordHash = passwordHash,
+            PasswordSalt = passwordSalt,
+            Orders = new List<Order>()
+        });
 
+        await _dbContext.SaveChangesAsync();
+        
         _authService.AppendAccessToken(email, isAdmin);
     }
 
@@ -56,9 +59,7 @@ public class UserService
 
     private async Task<User> GetUserByEmailAsync(string email)
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        var user = await connection.QueryFirstOrDefaultAsync<User>("select * from user u where u.email = @email;",
-            new { email });
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
         if (user is null)
             throw new BadRequestException("Usere not found");
         return user;
@@ -74,14 +75,11 @@ public class UserService
         var email = GetEmail();
         if (email is null)
             return null;
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        return await connection.QueryFirstOrDefaultAsync<User>("select * from user u where u.email = @email;",
-            new { email });
+        return await _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
     }
 
     public async Task<User?> GetUserById(int id)
     {
-        await using var connection = await _dbConnectionFactory.CreateConnectionAsync();
-        return await connection.QueryFirstOrDefaultAsync<User>("select * from user u where u.id = @id;", new { id });
+        return await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == id);
     }
 }
