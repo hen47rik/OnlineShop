@@ -59,7 +59,7 @@ public class AdminController : Controller
 
     public async Task<IActionResult> ChangeDb(string name)
     {
-        _databaseService.FileStorage.ActiveDb = name;
+        _databaseService.FileStorage.ActiveDb = name.Split(' ').First();
         await _databaseService.SaveChangesAsync();
         return Redirect("/");
     }

@@ -5,7 +5,7 @@
     {
         if (ViewData["user"] is not User user)
             return false;
-        var userAlreadyOrderdProduct = product.Orders.FirstOrDefault(x => x.User.Id == user.Id && x.IsCompleted == false) is not null;
+        var userAlreadyOrderdProduct = product.Orders.FirstOrDefault(x => x.UserId == user.Id && x.IsCompleted == false) is not null;
         return userAlreadyOrderdProduct;
     }
 }
