@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OnlineShop.Configuration;
+using OnlineShop.Exceptions;
 using OnlineShop.Models;
 using OnlineShop.Services;
 
@@ -37,14 +38,17 @@ public class AdminController : Controller
         return View("Index");
     }
 
-    public async Task<IActionResult> CreateProduct(string name, string description, string images, int amount, int price)
+    public async Task<IActionResult> CreateProduct(string name, string? description, string? images, int amount, int price)
     {
+        if (string.IsNullOrEmpty(name))
+            throw new BadRequestException("Product must have a name");
+        
         await _productService.CreateProduct(new Product
         {
             Name = name,
-            Description = description,
+            Description = description ?? string.Empty,
             Amount = amount,
-            Images = images,
+            Images = images ?? string.Empty,
             Price = price
         });
 
@@ -59,7 +63,7 @@ public class AdminController : Controller
 
     public async Task<IActionResult> ChangeDb(string name)
     {
-        _databaseService.FileStorage.ActiveDb = name;
+        _databaseService.FileStorage.ActiveDb = name.Split(' ').First();
         await _databaseService.SaveChangesAsync();
         return Redirect("/");
     }

@@ -65,9 +65,9 @@ public class HomeController : Controller
 
         await _dbContext.SaveChangesAsync();
 
-        return Redirect($"/CheckoutComplete/{order.Id}");
+        return Redirect($"/Home/CheckoutComplete/{order.Id}");
     }
-
+    
     public async Task<IActionResult> CheckoutComplete(int id)
     {
         var user = await _userService.GetUser();
@@ -86,5 +86,11 @@ public class HomeController : Controller
         ViewData["products"] = order.Products;
 
         return View("CheckoutComplete");
+    }
+
+    public async Task<IActionResult> RemoveFromOrder(int id)
+    {
+        await _orderService.RemoveProductFromOrder(id);
+        return Redirect("/");
     }
 }
