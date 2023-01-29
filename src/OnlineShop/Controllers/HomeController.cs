@@ -84,7 +84,7 @@ public class HomeController : Controller
             return NotFound();
 
         ViewData["products"] = order.Products;
-
+        
         return View("CheckoutComplete");
     }
 
