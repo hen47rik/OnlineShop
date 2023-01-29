@@ -38,7 +38,8 @@ public class OrderService
             existingOrder = new Order
             {
                 User = user,
-                Products = new List<Product>()
+                Products = new List<Product>(),
+                Date = DateTime.Now
             };
             _dbContext.Orders.Add(existingOrder);
         }
@@ -73,6 +74,9 @@ public class OrderService
             throw new BadRequestException("Cant find open order");
         
         order.Products.Remove(product);
+
+        if (order.Products.Count == 0)
+            _dbContext.Orders.Remove(order);
 
         await _dbContext.SaveChangesAsync();
     }
