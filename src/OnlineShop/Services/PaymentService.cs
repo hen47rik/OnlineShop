@@ -15,6 +15,7 @@ public class PaymentService
             Status = "requires_payment_method"
         };
     }
+    
 
     public static void ConfigureStripe(StripePaymentConfiguration stripePaymentConfiguration)
     {
