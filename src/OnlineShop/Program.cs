@@ -21,7 +21,6 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<PaymentService>();
 
 builder.Services.AddScoped<IDbContext>(provider =>
 {
@@ -62,7 +61,6 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-PaymentService.ConfigureStripe(app.Services.GetRequiredService<IOptions<StripePaymentConfiguration>>().Value);
 
 app.UseExceptionHandler(appError =>
 {

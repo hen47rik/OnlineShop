@@ -11,40 +11,39 @@
 }
 
 <form class="text-center">
-    <h1 class="display-4">Welcome to the Online Shop</h1>
-    <p>Products:</p>
-    <div class="flex-row flex-wrap gap-4" style="display: flex">
-        @foreach (var product in (List<Product>)ViewData["products"]!)
-        {
-            <div class="card" style="width: 18rem;">
-                @switch (ProductInWarenkorb(product))
-                {
-                    case true:
-                        <button asp-action="RemoveFromOrder" type="submit" class="btn btn-danger" name="id" value="@product.Id">Remove from cart</button>
-                        break;
-                    case false:
-                        <button asp-action="AddToOrder" type="submit" class="btn btn-success" name="id" value="@product.Id">Add to cart</button>
-                        break;
-                    case null:
-                        break;
-                }
-                <img class="card-img-top" src="@product.Images" alt="">
-                <div class="card-body">
-                    <h5 class="card-title">@product.Name</h5>
-                    <p class="card-text">@product.Description</p>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">@product.Amount Items remaining</li>
-                    <li class="list-group-item">@product.Price Fr.</li>
-                    <li class="list-group-item">Vestibulum at eros</li>
-                </ul>
-            </div>
-        }
-    </div>
-
-    @if (ViewData["user"] is not null && ViewData["order"] is not null)
-    {
-        <button asp-action="Checkout" type="submit" class="btn btn-success" name="id">Checkout (@ViewData["totalPrice"] Fr.)</button>
-    }
+    <h3 class="text-dark fw-bold">Products:</h3>
+      @if (ViewData["user"] is not null)
+                       {
+                           <button asp-action="Checkout" type="submit" class="btn" style="background-color: #adb5bd;" name="id">Checkout (@ViewData["totalPrice"] Fr.)</button>
+                       }
+      <div class="flex-row flex-wrap gap-3" style="display: flex">
+     
+          @foreach (var product in (List<Product>)ViewData["products"]!)
+          {
+            
+              <div class="border-2" style="width: 14rem; border-color: #2c3034; border-style: solid; border-radius: 15px;">
                 
+                  <img class="card-img-top" src="@product.Images" alt="">
+                  <div class="list-group">
+                      <h5 class="fw-bold">@product.Name</h5>
+                      <p class="subtitle">@product.Description</p>
+                  </div>
+                  <ul class="list-group list-group-flush mb-2">
+                      <li class="list-group-item-danger">@product.Amount Items remaining</li>
+                      <li class="list-group-item-success">@product.Price Fr.</li>
+                  </ul>
+                  @switch (ProductInWarenkorb(product))
+                  {
+                      case true:
+                          <button asp-action="RemoveFromOrder" type="submit" class="btn btn-close" name="id" value="@product.Id"></button>
+                          break;
+                      case false:
+                          <button asp-action="AddToOrder" type="submit" class="btn-success mb-2" name="id" value="@product.Id">Add to cart</button>
+                          break;
+                      case null:
+                          break;
+                  }
+              </div>
+          }
+      </div>
 </form>
