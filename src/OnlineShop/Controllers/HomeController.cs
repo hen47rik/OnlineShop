@@ -29,10 +29,26 @@ public class HomeController : Controller
     {
         var user = await _userService.GetUser();
         var products = await _productService.GetAllProductsIncludingOrderAsync();
+        if (user is not null)
+        {
+            var order = await _dbContext.Orders.Where(x => x.UserId == user.Id && x.IsCompleted == false)
+                .Include(x => x.Products)
+                .FirstOrDefaultAsync();
+            
+            if (order is not null)
+                ViewData["totalPrice"] = order.Products.Sum(x => x.Price);
+            ViewData["order"] = order;
+            
+        }
 
+        
         ViewData["products"] = products;
         ViewData["user"] = user;
+        ViewData["order"] = null;
+        
 
+
+        
         return View();
     }
 
@@ -55,7 +71,7 @@ public class HomeController : Controller
         if (user is null)
             throw new BadRequestException("User must be logged in to checkout");
 
-        var order = await _dbContext.Orders.Where(x => x.UserId == user.Id)
+        var order = await _dbContext.Orders.Where(x => x.UserId == user.Id && x.IsCompleted == false)
             .Include(x => x.Products).FirstOrDefaultAsync();
 
         if (order is null || order.Products.Count == 0)
@@ -65,9 +81,9 @@ public class HomeController : Controller
 
         await _dbContext.SaveChangesAsync();
 
-        return Redirect($"/CheckoutComplete/{order.Id}");
+        return Redirect($"/Home/CheckoutComplete/{order.Id}");
     }
-
+    
     public async Task<IActionResult> CheckoutComplete(int id)
     {
         var user = await _userService.GetUser();
@@ -83,8 +99,16 @@ public class HomeController : Controller
         if (order is null)
             return NotFound();
 
-        ViewData["products"] = order.Products;
+        order.IsCompleted = true;
 
+        ViewData["products"] = order.Products;
+        
         return View("CheckoutComplete");
+    }
+
+    public async Task<IActionResult> RemoveFromOrder(int id)
+    {
+        await _orderService.RemoveProductFromOrder(id);
+        return Redirect("/");
     }
 }
